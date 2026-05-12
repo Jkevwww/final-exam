@@ -43,3 +43,8 @@ button:disabled{opacity:.6;cursor:not-allowed;}
 .notice.error{border-color:rgba(255,90,95,.5);color:#ffd5d6;background:rgba(255,90,95,.10);}
 .notice.success{border-color:rgba(51,214,166,.5);color:#ccffee;background:rgba(51,214,166,.10);}
 
+.form-actions{display:flex;align-items:flex-end;}
+.form-actions button{width:100%;}
+.form-footer{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
+.form-footer a{text-decoration:none;}
+
