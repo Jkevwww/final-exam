@@ -88,10 +88,8 @@ Then open:
 
 ## Notes for the instructor
 Screenshots to collect:
-
 1. GitHub repository page
 2. Aiven database dashboard
 3. Render deployment dashboard
 4. Running application
 5. Database records
-
