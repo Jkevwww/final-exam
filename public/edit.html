@@ -96,13 +96,32 @@
       notice.textContent = '';
 
       try{
-        const studentId = studentIdEl.value;
+        const studentId = String(studentIdEl.value || '').trim();
         const payload = {
-          fullName: fullNameEl.value,
-          course: courseEl.value,
-          yearLevel: yearLevelEl.value,
-          emailAddress: emailAddressEl.value
+          fullName: String(fullNameEl.value || '').trim(),
+          course: String(courseEl.value || '').trim(),
+          yearLevel: String(yearLevelEl.value || '').trim(),
+          emailAddress: String(emailAddressEl.value || '').trim()
         };
+
+        const required = ['fullName', 'course', 'yearLevel', 'emailAddress'];
+        for (const k of required) {
+          if (!payload[k]) {
+            return setNotice(notice, 'error', `${k} is required.`);
+          }
+        }
+        if (!studentId) return setNotice(notice, 'error', 'Student ID is required.');
+
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!emailRegex.test(payload.emailAddress)) {
+          return setNotice(notice, 'error', 'Invalid email address.');
+        }
+
+        if (studentId.length > 50) return setNotice(notice, 'error', 'Student ID must be 50 characters or less.');
+        if (payload.fullName.length > 120) return setNotice(notice, 'error', 'Full Name must be 120 characters or less.');
+        if (payload.course.length > 120) return setNotice(notice, 'error', 'Course must be 120 characters or less.');
+        if (payload.yearLevel.length > 50) return setNotice(notice, 'error', 'Year Level must be 50 characters or less.');
+        if (payload.emailAddress.length > 200) return setNotice(notice, 'error', 'Email Address must be 200 characters or less.');
 
         await api(`/api/students/${encodeURIComponent(studentId)}`, {
           method: 'PUT',
@@ -113,6 +132,7 @@
       }catch(err){
         setNotice(notice, 'error', err.message || 'Update failed.');
       }
+
     });
 
     document.getElementById('deleteBtn').addEventListener('click', async () => {

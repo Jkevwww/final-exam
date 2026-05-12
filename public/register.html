@@ -67,15 +67,43 @@
       notice.textContent = '';
       try {
         const data = Object.fromEntries(new FormData(form).entries());
+
+        // Client-side validation (mirrors backend constraints)
+        const required = ['studentId', 'fullName', 'course', 'yearLevel', 'emailAddress'];
+        for (const k of required) {
+          if (!String(data[k] || '').trim()) {
+            return setNotice(notice, 'error', `${k} is required.`);
+          }
+        }
+
+        const email = String(data.emailAddress || '').trim();
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!emailRegex.test(email)) {
+          return setNotice(notice, 'error', 'Invalid email address.');
+        }
+
+        if (String(data.studentId).trim().length > 50) return setNotice(notice, 'error', 'Student ID must be 50 characters or less.');
+        if (String(data.fullName).trim().length > 120) return setNotice(notice, 'error', 'Full Name must be 120 characters or less.');
+        if (String(data.course).trim().length > 120) return setNotice(notice, 'error', 'Course must be 120 characters or less.');
+        if (String(data.yearLevel).trim().length > 50) return setNotice(notice, 'error', 'Year Level must be 50 characters or less.');
+        if (String(data.emailAddress).trim().length > 200) return setNotice(notice, 'error', 'Email Address must be 200 characters or less.');
+
         await api('/api/students', {
           method: 'POST',
-          body: JSON.stringify(data)
+          body: JSON.stringify({
+            studentId: String(data.studentId).trim(),
+            fullName: String(data.fullName).trim(),
+            course: String(data.course).trim(),
+            yearLevel: String(data.yearLevel).trim(),
+            emailAddress: String(data.emailAddress).trim()
+          })
         });
         setNotice(notice, 'success', 'Student added successfully.');
         form.reset();
       } catch (err) {
         setNotice(notice, 'error', err.message || 'Failed to add student.');
       }
+
     });
   </script>
 </body>

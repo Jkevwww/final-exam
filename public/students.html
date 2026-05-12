@@ -66,12 +66,13 @@
                 <a href="/edit.html?studentId=${encodeURIComponent(s.studentId)}" style="text-decoration:none;">
                   <button type="button" class="secondary">Edit</button>
                 </a>
-                <button type="button" class="danger" data-id="${escapeHtml(s.studentId)}">Delete</button>
+                <button type="button" class="danger" data-id="${String(s.studentId)}">Delete</button>
               </div>
             </td>
           `;
           tbody.appendChild(tr);
         }
+
 
         tbody.querySelectorAll('button.danger').forEach((btn) => {
           btn.addEventListener('click', async () => {
