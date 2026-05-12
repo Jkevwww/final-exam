@@ -10,6 +10,8 @@
 
 - [ ] Add `CHECKLIST.md`
 - [ ] Generate/commit `DEMO_CHECKLIST.pdf`
-- [ ] Sanity test locally (`npm install`, `npm start`) and verify CRUD
+
+- [x] Sanity test locally (`npm install`, `npm start`) and verify CRUD
+
 - [ ] Verify backend errors are consistent (400/404/409)
 
