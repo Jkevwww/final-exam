@@ -8,10 +8,14 @@
 
 - [x] Frontend validation improvements in `register.html` + `edit.html` (and any needed fixes)
 
-- [ ] Add `CHECKLIST.md`
-- [ ] Generate/commit `DEMO_CHECKLIST.pdf`
+- [x] Add `CHECKLIST.md`
+- [x] Generate/commit `DEMO_CHECKLIST.pdf`
+
 
 - [x] Sanity test locally (`npm install`, `npm start`) and verify CRUD
 
-- [ ] Verify backend errors are consistent (400/404/409)
+- [x] Verify backend errors are consistent (400/404/409)
+
+
+
 
