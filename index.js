@@ -94,11 +94,26 @@ app.post('/api/students', async (req, res) => {
     const result = await createStudent(validation.normalized);
     res.status(201).json({ message: 'Student created.', student: result });
   } catch (err) {
+    console.error('createStudent failed:', err);
+
     // MySQL duplicate key
     if (err && err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ error: 'Student ID already exists.' });
     }
-    res.status(500).json({ error: 'Failed to create student.' });
+
+    // Common DB connection/config errors (safe, no secrets)
+    if (err && (err.code === 'ER_ACCESS_DENIED_ERROR' || err.code === 'EAUTH')) {
+      return res.status(500).json({ error: 'Database authentication failed. Check DB_USER/DB_PASSWORD.' });
+    }
+    if (err && (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT')) {
+      return res.status(500).json({ error: 'Database connection failed. Check DB_HOST/DB_PORT (and network/Render/Aiven connectivity).' });
+    }
+
+    // If we already have a safe-ish message, surface it for debugging.
+    const msg = err && typeof err.message === 'string' && err.message.length < 300 ? err.message : null;
+    return res.status(500).json({
+      error: msg ? `Failed to create student: ${msg}` : 'Failed to create student.'
+    });
   }
 });
 
@@ -148,8 +163,9 @@ async function start() {
   try {
     await ensureStudentsTable();
   } catch (_e) {
-    // If the user prefers manual DDL in Aiven, this can fail; app still starts.
+    console.warn('ensureStudentsTable() failed; app will still start. Error:', _e);
   }
+
 
   const port = process.env.PORT || 10000;
   app.listen(port, () => {
