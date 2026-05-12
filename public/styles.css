@@ -47,5 +47,6 @@ button:disabled{opacity:.6;cursor:not-allowed;}
 .form-actions button{width:100%;}
 .form-footer{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
 .form-footer a{text-decoration:none;}
+.list-muted{color:var(--muted);margin-top:10px;line-height:1.6;}
 #notice{margin-top:12px;}
 

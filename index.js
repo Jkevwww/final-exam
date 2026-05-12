@@ -31,16 +31,67 @@ app.get('/api/students', async (_req, res) => {
   }
 });
 
-app.post('/api/students', async (req, res) => {
-  try {
-    const { studentId, fullName, course, yearLevel, emailAddress } = req.body || {};
+function isNonEmptyString(v) {
+  return typeof v === 'string' && v.trim().length > 0;
+}
 
-    // Basic validation
-    if (!studentId || !fullName || !course || !yearLevel || !emailAddress) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+function validateStudentPayload(payload) {
+  const {
+    studentId,
+    fullName,
+    course,
+    yearLevel,
+    emailAddress
+  } = payload || {};
+
+  const errors = [];
+
+  const email = typeof emailAddress === 'string' ? emailAddress.trim() : '';
+  const emailRegex = /^\S+@\S+\.\S+$/;
+
+  if (!isNonEmptyString(studentId)) errors.push('Student ID is required.');
+  if (!isNonEmptyString(fullName)) errors.push('Full Name is required.');
+  if (!isNonEmptyString(course)) errors.push('Course is required.');
+  if (!isNonEmptyString(yearLevel)) errors.push('Year Level is required.');
+  if (!isNonEmptyString(emailAddress)) errors.push('Email Address is required.');
+
+  // Length checks aligned with DB schema
+  if (typeof studentId === 'string' && studentId.trim().length > 50) errors.push('Student ID must be 50 characters or less.');
+  if (typeof fullName === 'string' && fullName.trim().length > 120) errors.push('Full Name must be 120 characters or less.');
+  if (typeof course === 'string' && course.trim().length > 120) errors.push('Course must be 120 characters or less.');
+  if (typeof yearLevel === 'string' && yearLevel.trim().length > 50) errors.push('Year Level must be 50 characters or less.');
+  if (typeof emailAddress === 'string' && emailAddress.trim().length > 200) errors.push('Email Address must be 200 characters or less.');
+
+  // Basic format
+  if (isNonEmptyString(emailAddress) && !emailRegex.test(email)) {
+    errors.push('Invalid email address.');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    normalized: {
+      studentId: String(studentId || '').trim(),
+      fullName: String(fullName || '').trim(),
+      course: String(course || '').trim(),
+      yearLevel: String(yearLevel || '').trim(),
+      emailAddress: String(emailAddress || '').trim()
     }
+  };
+}
 
-    const result = await createStudent({ studentId, fullName, course, yearLevel, emailAddress });
+function sendValidation(res, errors) {
+  return res.status(400).json({ error: 'Validation failed.', details: errors });
+}
+
+
+app.post('/api/students', async (req, res) => {
+
+  try {
+    const validation = validateStudentPayload(req.body);
+    if (!validation.valid) return sendValidation(res, validation.errors);
+
+    const result = await createStudent(validation.normalized);
     res.status(201).json({ message: 'Student created.', student: result });
   } catch (err) {
     // MySQL duplicate key
@@ -52,21 +103,18 @@ app.post('/api/students', async (req, res) => {
 });
 
 app.put('/api/students/:studentId', async (req, res) => {
+
   try {
     const { studentId: paramId } = req.params;
-    const { fullName, course, yearLevel, emailAddress } = req.body || {};
 
-    if (!paramId || !fullName || !course || !yearLevel || !emailAddress) {
-      return res.status(400).json({ error: 'Missing required fields.' });
-    }
-
-    const updated = await updateStudent({
-      studentId: paramId,
-      fullName,
-      course,
-      yearLevel,
-      emailAddress
+    const validation = validateStudentPayload({
+      ...req.body,
+      studentId: paramId
     });
+
+    if (!validation.valid) return sendValidation(res, validation.errors);
+
+    const updated = await updateStudent(validation.normalized);
 
     res.json({ message: 'Student updated.', student: updated });
   } catch (err) {
@@ -79,6 +127,8 @@ app.put('/api/students/:studentId', async (req, res) => {
     res.status(500).json({ error: 'Failed to update student.' });
   }
 });
+
+
 
 app.delete('/api/students/:studentId', async (req, res) => {
   try {
