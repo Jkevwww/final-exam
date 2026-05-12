@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Information Management System</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/students.html">Students</a>
+      <a href="/edit.html">Edit Student</a>
+    </nav>
+
+    <div class="card">
+      <h1>Student Information Management System</h1>
+      <h2>CRUD + MySQL(Aiven) + Render</h2>
+      <div class="grid">
+        <div>
+          <div class="notice">Use the navigation menu to:</div>
+          <ul style="color:var(--muted);margin-top:10px;line-height:1.6;">
+            <li>Add student records</li>
+            <li>View all students</li>
+            <li>Update student information</li>
+            <li>Delete student records</li>
+          </ul>
+        </div>
+        <div>
+          <div class="notice">This demo uses REST endpoints hosted on Render and a MySQL database hosted on Aiven.</div>
+          <div class="notice">Required fields: Student ID, Full Name, Course, Year Level, Email Address.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/register.html" style="text-decoration:none;">
+          <button>Register Student</button>
+        </a>
+        <a href="/students.html" style="text-decoration:none;">
+          <button class="secondary">View Student List</button>
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

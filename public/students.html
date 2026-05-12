@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student List</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/students.html">Students</a>
+      <a href="/edit.html">Edit Student</a>
+    </nav>
+
+    <div class="card">
+      <h1>Student List</h1>
+      <h2>View all students, update, or delete</h2>
+
+      <div id="notice"></div>
+
+      <table class="table" aria-label="Student table">
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Full Name</th>
+            <th>Course</th>
+            <th>Year Level</th>
+            <th>Email Address</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    const tbody = document.getElementById('tbody');
+    const notice = document.getElementById('notice');
+
+    async function render(){
+      tbody.innerHTML = '';
+      setNotice(notice, '', 'Loading students...');
+      try{
+        const students = await loadStudents();
+        if(!students.length){
+          setNotice(notice, '', 'No records found.');
+          return;
+        }
+        setNotice(notice, '', '');
+
+        for(const s of students){
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(s.studentId)}</td>
+            <td>${escapeHtml(s.fullName)}</td>
+            <td>${escapeHtml(s.course)}</td>
+            <td>${escapeHtml(s.yearLevel)}</td>
+            <td>${escapeHtml(s.emailAddress)}</td>
+            <td>
+              <div class="actions">
+                <a href="/edit.html?studentId=${encodeURIComponent(s.studentId)}" style="text-decoration:none;">
+                  <button type="button" class="secondary">Edit</button>
+                </a>
+                <button type="button" class="danger" data-id="${escapeHtml(s.studentId)}">Delete</button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        tbody.querySelectorAll('button.danger').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            if(!confirm(`Delete student ${id}?`)) return;
+            try{
+              setNotice(notice, '', `Deleting ${id}...`);
+              await api(`/api/students/${encodeURIComponent(id)}`, { method: 'DELETE' });
+              await render();
+            }catch(err){
+              setNotice(notice, 'error', err.message || 'Delete failed.');
+            }
+          });
+        });
+
+      }catch(err){
+        setNotice(notice, 'error', err.message || 'Failed to load students.');
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
+

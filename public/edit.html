@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Edit Student</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/students.html">Students</a>
+      <a href="/edit.html">Edit Student</a>
+    </nav>
+
+    <div class="card">
+      <h1>Edit Student</h1>
+      <h2>Update student information</h2>
+
+      <form id="form">
+        <div class="grid">
+          <div>
+            <label>Student ID</label>
+            <input name="studentId" id="studentId" placeholder="Student ID" required />
+          </div>
+          <div>
+            <label>Full Name</label>
+            <input name="fullName" id="fullName" placeholder="Full Name" required />
+          </div>
+          <div>
+            <label>Course</label>
+            <input name="course" id="course" placeholder="Course" required />
+          </div>
+          <div>
+            <label>Year Level</label>
+            <input name="yearLevel" id="yearLevel" placeholder="Year Level" required />
+          </div>
+          <div>
+            <label>Email Address</label>
+            <input name="emailAddress" id="emailAddress" type="email" placeholder="Email" required />
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button type="submit" style="width:100%;">Update Student</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="notice" style="margin-top:12px;"></div>
+
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="/students.html" style="text-decoration:none;">
+          <button class="secondary">Back to List</button>
+        </a>
+        <button type="button" class="danger" id="deleteBtn">Delete Student</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    const form = document.getElementById('form');
+    const notice = document.getElementById('notice');
+
+    const studentIdEl = document.getElementById('studentId');
+    const fullNameEl = document.getElementById('fullName');
+    const courseEl = document.getElementById('course');
+    const yearLevelEl = document.getElementById('yearLevel');
+    const emailAddressEl = document.getElementById('emailAddress');
+
+    function qs(k){
+      return new URLSearchParams(location.search).get(k);
+    }
+
+    async function fillFromQuery(){
+      const id = qs('studentId');
+      if(!id) return;
+      studentIdEl.value = id;
+
+      try{
+        const students = await loadStudents();
+        const s = students.find(x => String(x.studentId) === String(id));
+        if(!s) return;
+        fullNameEl.value = s.fullName;
+        courseEl.value = s.course;
+        yearLevelEl.value = s.yearLevel;
+        emailAddressEl.value = s.emailAddress;
+      }catch(_e){
+        // ignore
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      notice.textContent = '';
+
+      try{
+        const studentId = studentIdEl.value;
+        const payload = {
+          fullName: fullNameEl.value,
+          course: courseEl.value,
+          yearLevel: yearLevelEl.value,
+          emailAddress: emailAddressEl.value
+        };
+
+        await api(`/api/students/${encodeURIComponent(studentId)}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+
+        setNotice(notice, 'success', 'Student updated successfully.');
+      }catch(err){
+        setNotice(notice, 'error', err.message || 'Update failed.');
+      }
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+      const id = studentIdEl.value;
+      if(!id){
+        setNotice(notice, 'error', 'Enter Student ID first.');
+        return;
+      }
+      if(!confirm(`Delete student ${id}?`)) return;
+      try{
+        await api(`/api/students/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        setNotice(notice, 'success', 'Student deleted successfully.');
+        setTimeout(()=>location.href='/students.html', 800);
+      }catch(err){
+        setNotice(notice, 'error', err.message || 'Delete failed.');
+      }
+    });
+
+    fillFromQuery();
+  </script>
+</body>
+</html>
+

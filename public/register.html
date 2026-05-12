@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register Student</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/students.html">Students</a>
+      <a href="/edit.html">Edit Student</a>
+    </nav>
+
+    <div class="card">
+      <h1>Student Registration</h1>
+      <h2>Create a new student record</h2>
+
+      <form id="form">
+        <div class="grid">
+          <div>
+            <label>Student ID</label>
+            <input name="studentId" placeholder="e.g. 2024-001" required />
+          </div>
+          <div>
+            <label>Full Name</label>
+            <input name="fullName" placeholder="e.g. Juan Dela Cruz" required />
+          </div>
+          <div>
+            <label>Course</label>
+            <input name="course" placeholder="e.g. IT" required />
+          </div>
+          <div>
+            <label>Year Level</label>
+            <input name="yearLevel" placeholder="e.g. 3rd Year" required />
+          </div>
+          <div>
+            <label>Email Address</label>
+            <input name="emailAddress" type="email" placeholder="e.g. juan@email.com" required />
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button type="submit" style="width:100%;">Add Student</button>
+          </div>
+        </div>
+      </form>
+
+      <div id="notice" style="margin-top:12px;"></div>
+
+      <div style="margin-top:16px;">
+        <a href="/students.html" style="text-decoration:none;">
+          <button class="secondary">Go to Student List</button>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    const form = document.getElementById('form');
+    const notice = document.getElementById('notice');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      notice.textContent = '';
+      try {
+        const data = Object.fromEntries(new FormData(form).entries());
+        await api('/api/students', {
+          method: 'POST',
+          body: JSON.stringify(data)
+        });
+        setNotice(notice, 'success', 'Student added successfully.');
+        form.reset();
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Failed to add student.');
+      }
+    });
+  </script>
+</body>
+</html>
+
