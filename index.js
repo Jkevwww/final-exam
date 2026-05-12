@@ -27,9 +27,11 @@ app.get('/api/students', async (_req, res) => {
     const students = await getAllStudents();
     res.json({ students });
   } catch (err) {
+    console.error('getAllStudents failed:', err);
     res.status(500).json({ error: 'Failed to fetch students.' });
   }
 });
+
 
 function isNonEmptyString(v) {
   return typeof v === 'string' && v.trim().length > 0;

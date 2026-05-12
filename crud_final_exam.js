@@ -1,7 +1,27 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+function logDbEnvPresence() {
+  const keys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME', 'DB_SSL', 'DB_CONNECTION_LIMIT'];
+  const present = {};
+  for (const k of keys) {
+    if (Object.prototype.hasOwnProperty.call(process.env, k)) {
+      if (k === 'DB_SSL') {
+        present[k] = String(process.env[k] || '').toLowerCase() === 'true' ? 'true' : 'false';
+      } else if (k === 'DB_PASSWORD') {
+        present[k] = process.env[k] ? '***set***' : '***empty***';
+      } else {
+        present[k] = process.env[k] ? '***set***' : '***empty***';
+      }
+    } else {
+      present[k] = 'not-set';
+    }
+  }
+  console.log('[db-config] env presence:', present);
+}
+
 function getDbConfig() {
+  logDbEnvPresence();
   // Aiven MySQL credentials should be provided via environment variables on Render.
   const {
     DB_HOST,
