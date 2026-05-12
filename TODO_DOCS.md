@@ -2,7 +2,8 @@
 
 - [x] Create `.env.example`
 
-- [ ] Update `README.md` with Render instructions + env var docs
+- [x] Update `README.md` with Render instructions + env var docs
+
 - [x] Backend validation improvements in `index.js`
 
 - [ ] Frontend validation improvements in `register.html` + `edit.html` (and any needed fixes)
