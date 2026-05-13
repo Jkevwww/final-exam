@@ -1,135 +1,287 @@
-diff --git a/public/students.html b/public/students.html
-index c148e39946adbfa52e79159d5a1113dc11120d0c..29b2a9822259c3c41b8484e4648fe767f0b95772 100644
---- a/public/students.html
-+++ b/public/students.html
-@@ -1,100 +1,124 @@
- <!doctype html>
- <html lang="en">
- <head>
-   <meta charset="utf-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=1" />
-   <title>Student List</title>
-   <link rel="stylesheet" href="/styles.css" />
- </head>
- <body>
-   <div class="container">
-     <nav>
-       <a href="/index.html">Home</a>
-       <a href="/register.html">Register</a>
--      <a href="/students.html">Students</a>
-+      <a href="/students.html" class="active">Students</a>
-       <a href="/edit.html">Edit Student</a>
-     </nav>
- 
-     <div class="card">
--      <h1>Student List</h1>
-+      <div class="page-title"><h1>Student List</h1><span class="chip" id="recordCount">0 students</span></div>
-       <h2>View all students, update, or delete</h2>
- 
-+      <div class="toolbar">
-+        <div class="grow">
-+          <label for="searchInput">Search students</label>
-+          <input id="searchInput" placeholder="Search by ID, name, course, year, or email" />
-+          <p class="help-text">Tip: Type any keyword to instantly filter the table.</p>
-+        </div>
-+      </div>
-+
-       <div id="notice"></div>
- 
--      <table class="table" aria-label="Student table">
-+      <div class="table-wrap"><table class="table" aria-label="Student table">
-         <thead>
-           <tr>
-             <th>Student ID</th>
-             <th>Full Name</th>
-             <th>Course</th>
-             <th>Year Level</th>
-             <th>Email Address</th>
-             <th>Actions</th>
-           </tr>
-         </thead>
-         <tbody id="tbody"></tbody>
--      </table>
-+      </table></div>
-     </div>
-   </div>
- 
-   <script src="/app.js"></script>
-   <script>
-     const tbody = document.getElementById('tbody');
-     const notice = document.getElementById('notice');
-+    const searchInput = document.getElementById('searchInput');
-+    const recordCount = document.getElementById('recordCount');
-+
-+    function studentMatches(s, q){
-+      if(!q) return true;
-+      const haystack = [s.studentId, s.fullName, s.course, s.yearLevel, s.emailAddress]
-+        .map(v => String(v || '').toLowerCase())
-+        .join(' ');
-+      return haystack.includes(q.toLowerCase());
-+    }
- 
-     async function render(){
-       tbody.innerHTML = '';
-       setNotice(notice, '', 'Loading students...');
-       try{
-         const students = await loadStudents();
-+        const query = String(searchInput.value || "").trim();
-+        const filtered = students.filter((s) => studentMatches(s, query));
-+
-         if(!students.length){
-           setNotice(notice, '', 'No records found.');
-           return;
-         }
--        setNotice(notice, '', '');
-+        setNotice(notice, '', filtered.length ? '' : `No records match "${query}".`);
-+        recordCount.textContent = `${filtered.length} student${filtered.length === 1 ? "" : "s"}`;
- 
--        for(const s of students){
-+        for(const s of filtered){
-           const tr = document.createElement('tr');
-           tr.innerHTML = `
-             <td>${escapeHtml(s.studentId)}</td>
-             <td>${escapeHtml(s.fullName)}</td>
-             <td>${escapeHtml(s.course)}</td>
-             <td>${escapeHtml(s.yearLevel)}</td>
-             <td>${escapeHtml(s.emailAddress)}</td>
-             <td>
-               <div class="actions">
-                 <a href="/edit.html?studentId=${encodeURIComponent(s.studentId)}" style="text-decoration:none;">
-                   <button type="button" class="secondary">Edit</button>
-                 </a>
-                 <button type="button" class="danger" data-id="${String(s.studentId)}">Delete</button>
-               </div>
-             </td>
-           `;
-           tbody.appendChild(tr);
-         }
- 
- 
-         tbody.querySelectorAll('button.danger').forEach((btn) => {
-           btn.addEventListener('click', async () => {
-             const id = btn.getAttribute('data-id');
-             if(!confirm(`Delete student ${id}?`)) return;
-             try{
-               setNotice(notice, '', `Deleting ${id}...`);
-               await api(`/api/students/${encodeURIComponent(id)}`, { method: 'DELETE' });
-               await render();
-             }catch(err){
-               setNotice(notice, 'error', err.message || 'Delete failed.');
-             }
-           });
-         });
- 
-       }catch(err){
-         setNotice(notice, 'error', err.message || 'Failed to load students.');
-       }
-     }
- 
-+    searchInput.addEventListener('input', () => render());
-+
-     render();
-   </script>
- </body>
- </html>
- 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student List</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <nav aria-label="Main navigation">
+      <a href="/index.html">Home</a>
+      <a href="/register.html">Register</a>
+      <a href="/students.html" aria-current="page">Students</a>
+      <a href="/edit.html">Edit Student</a>
+    </nav>
+
+    <main class="card">
+      <div class="page-title">
+        <h1>Student List</h1>
+        <span class="chip" id="recordCount">0 students</span>
+      </div>
+      <h2>View all students, update, or delete</h2>
+
+      <div class="toolbar">
+        <div class="grow">
+          <label for="searchInput">Search students</label>
+          <input id="searchInput" type="search" placeholder="Search by ID, name, course, year, or email" autocomplete="off" />
+          <p class="help-text">Tip: Type any keyword to instantly filter the table.</p>
+        </div>
+      </div>
+
+      <div id="notice" role="alert" aria-live="polite"></div>
+
+      <div class="table-wrap">
+        <table class="table" aria-label="Student records">
+          <thead>
+            <tr>
+              <th scope="col">Student ID</th>
+              <th scope="col">Full Name</th>
+              <th scope="col">Course</th>
+              <th scope="col">Year Level</th>
+              <th scope="col">Email Address</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody" aria-live="polite"></tbody>
+        </table>
+      </div>
+
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <p>No student records found.</p>
+        <a href="/register.html" class="primary">Register a new student</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+  <script>
+    // DOM References
+    const tbody = document.getElementById('tbody');
+    const notice = document.getElementById('notice');
+    const searchInput = document.getElementById('searchInput');
+    const recordCount = document.getElementById('recordCount');
+    const emptyState = document.getElementById('empty-state');
+
+    // API configuration
+    const API_BASE = '/api/students';
+
+    /**
+     * Filters students based on search query
+     * @param {Object} student - The student data object
+     * @param {string} query - The search query
+     * @returns {boolean} Whether the student matches the query
+     */
+    function studentMatches(student, query) {
+      if (!query) return true;
+      const haystack = [student.studentId, student.fullName, student.course, student.yearLevel, student.emailAddress]
+        .map(v => String(v || '').toLowerCase())
+        .join(' ');
+      return haystack.includes(query.toLowerCase());
+    }
+
+    /**
+     * Creates a table row element for a student
+     * Uses DOM methods instead of innerHTML for better security
+     * @param {Object} student - The student data object
+     * @returns {HTMLTableRowElement} The constructed table row
+     */
+    function createStudentRow(student) {
+      const tr = document.createElement('tr');
+      tr.dataset.studentId = student.studentId;
+
+      // Create cells with textContent for XSS protection
+      const fields = [
+        student.studentId,
+        student.fullName,
+        student.course,
+        student.yearLevel,
+        student.emailAddress
+      ];
+
+      fields.forEach(field => {
+        const td = document.createElement('td');
+        td.textContent = field;
+        tr.appendChild(td);
+      });
+
+      // Actions cell
+      const actionsTd = document.createElement('td');
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'actions';
+
+      // Edit link styled as button (semantic HTML)
+      const editLink = document.createElement('a');
+      editLink.href = `/edit.html?studentId=${encodeURIComponent(student.studentId)}`;
+      editLink.className = 'secondary';
+      editLink.textContent = 'Edit';
+      editLink.setAttribute('aria-label', `Edit student ${student.studentId}`);
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'danger';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.dataset.id = student.studentId;
+      deleteBtn.setAttribute('aria-label', `Delete student ${student.studentId}`);
+
+      actionsDiv.appendChild(editLink);
+      actionsDiv.appendChild(deleteBtn);
+      actionsTd.appendChild(actionsDiv);
+      tr.appendChild(actionsTd);
+
+      return tr;
+    }
+
+    /**
+     * Shows the empty state when no students are found
+     */
+    function showEmptyState() {
+      tbody.style.display = 'none';
+      emptyState.style.display = 'block';
+    }
+
+    /**
+     * Hides the empty state and shows the table
+     */
+    function hideEmptyState() {
+      tbody.style.display = '';
+      emptyState.style.display = 'none';
+    }
+
+    /**
+     * Handles delete action for a student
+     * @param {string} studentId - The ID of the student to delete
+     * @param {HTMLElement} row - The table row element to remove
+     */
+    async function handleDelete(studentId, row) {
+      const studentName = row.children[1]?.textContent || studentId;
+
+      if (!confirm(`Are you sure you want to delete student "${studentName}" (${studentId})?`)) {
+        return;
+      }
+
+      try {
+        setNotice(notice, '', `Deleting ${studentName}...`);
+        setLoadingState(true);
+
+        await api(`${API_BASE}/${encodeURIComponent(studentId)}`, { method: 'DELETE' });
+
+        // Animate row removal
+        row.style.transition = 'opacity 0.3s ease';
+        row.style.opacity = '0';
+
+        setTimeout(() => {
+          row.remove();
+          // Check if table is now empty
+          if (tbody.children.length === 0) {
+            showEmptyState();
+          }
+          setNotice(notice, 'success', `Student "${studentName}" deleted successfully.`);
+
+          // Re-apply filter if search has content
+          const query = String(searchInput.value || '').trim();
+          if (query) {
+            render();
+          }
+        }, 300);
+
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Delete failed. Please try again.');
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    /**
+     * Sets the loading state for interactive elements
+     * @param {boolean} isLoading - Whether to enable or disable loading state
+     */
+    function setLoadingState(isLoading) {
+      const buttons = tbody.querySelectorAll('button');
+      buttons.forEach(btn => btn.disabled = isLoading);
+
+      const links = tbody.querySelectorAll('a');
+      links.forEach(link => {
+        if (isLoading) {
+          link.setAttribute('aria-disabled', 'true');
+          link.style.pointerEvents = 'none';
+          link.style.opacity = '0.5';
+        } else {
+          link.removeAttribute('aria-disabled');
+          link.style.pointerEvents = '';
+          link.style.opacity = '';
+        }
+      });
+    }
+
+    /**
+     * Main render function - loads and displays all students
+     * Uses event delegation for delete buttons
+     */
+    async function render() {
+      tbody.innerHTML = '';
+      hideEmptyState();
+      setNotice(notice, '', 'Loading students...');
+      setLoadingState(true);
+
+      try {
+        const students = await loadStudents();
+        const query = String(searchInput.value || '').trim();
+        const filtered = students.filter((s) => studentMatches(s, query));
+
+        if (!students.length) {
+          showEmptyState();
+          setNotice(notice, '', 'No records found.');
+          recordCount.textContent = '0 students';
+          return;
+        }
+
+        setNotice(notice, '', filtered.length ? '' : `No records match "${query}".`);
+        recordCount.textContent = `${filtered.length} student${filtered.length === 1 ? '' : 's'}`;
+
+        // Render all student rows
+        filtered.forEach(student => {
+          const row = createStudentRow(student);
+          tbody.appendChild(row);
+        });
+
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Failed to load students.');
+        showEmptyState();
+      } finally {
+        setLoadingState(false);
+      }
+    }
+
+    // Event delegation for delete buttons - more efficient than attaching to each button
+    tbody.addEventListener('click', async (event) => {
+      const deleteBtn = event.target.closest('button.danger');
+      if (!deleteBtn) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const studentId = deleteBtn.dataset.id;
+      const row = deleteBtn.closest('tr');
+
+      if (row) {
+        await handleDelete(studentId, row);
+      }
+    });
+
+    // Search input handler with debounce for performance
+    let searchDebounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        render();
+      }, 300);
+    });
+
+    // Initialize the page
+    render();
+  </script>
+</body>
+</html>
