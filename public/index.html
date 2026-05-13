@@ -3,19 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Student Information Management System - A CRUD application for managing student records with MySQL database integration." />
+  <meta name="theme-color" content="#0b1220" />
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Student Information Management System" />
+  <meta property="og:description" content="Manage student records with ease - Add, View, Update, and Delete student information." />
+  <meta property="og:type" content="website" />
+
   <title>Student Information Management System</title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎓%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
   <div class="container">
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="/index.html">Home</a>
       <a href="/register.html">Register</a>
       <a href="/students.html">Students</a>
-      <a href="/edit.html">Edit Student</a>
     </nav>
 
-    <div class="card">
+    <main class="card">
       <h1>Student Information Management System</h1>
       <h2>CRUD + MySQL(Aiven) + Render</h2>
       <div class="grid">
@@ -35,15 +43,10 @@
       </div>
 
       <div class="form-footer">
-        <a href="/register.html">
-          <button>Register Student</button>
-        </a>
-        <a href="/students.html">
-          <button class="secondary">View Student List</button>
-        </a>
+        <a href="/register.html" class="btn btn-primary">Register Student</a>
+        <a href="/students.html" class="btn btn-secondary">View Student List</a>
       </div>
-    </div>
+    </main>
   </div>
 </body>
 </html>
-

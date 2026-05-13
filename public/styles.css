@@ -50,3 +50,5 @@ button:disabled{opacity:.6;cursor:not-allowed;}
 .list-muted{color:var(--muted);margin-top:10px;line-height:1.6;}
 #notice{margin-top:12px;}
 
+.empty-state { display: none; }
+

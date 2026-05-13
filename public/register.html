@@ -3,107 +3,211 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Register Student</title>
+  <title>Register Student | Student Management System</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <div class="container">
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="/index.html">Home</a>
-      <a href="/register.html">Register</a>
+      <a href="/register.html" aria-current="page">Register</a>
       <a href="/students.html">Students</a>
       <a href="/edit.html">Edit Student</a>
     </nav>
 
-    <div class="card">
+    <main class="card">
       <h1>Student Registration</h1>
-      <h2>Create a new student record</h2>
+      <p class="subtitle">Create a new student record</p>
 
-      <form id="form">
-        <div class="grid">
-          <div>
-            <label>Student ID</label>
-            <input name="studentId" placeholder="e.g. 2024-001" required />
+      <form id="form" novalidate>
+        <fieldset class="grid">
+          <legend class="visually-hidden">Student Information</legend>
+
+          <div class="form-group">
+            <label for="studentId">Student ID <span class="required">*</span></label>
+            <input
+              id="studentId"
+              name="studentId"
+              type="text"
+              placeholder="e.g. 2024-001"
+              maxlength="50"
+              autocomplete="off"
+              required
+              aria-required="true"
+              aria-describedby="studentId-hint"
+            />
+            <small id="studentId-hint" class="hint">Unique identifier for the student</small>
           </div>
-          <div>
-            <label>Full Name</label>
-            <input name="fullName" placeholder="e.g. Juan Dela Cruz" required />
+
+          <div class="form-group">
+            <label for="fullName">Full Name <span class="required">*</span></label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="e.g. Juan Dela Cruz"
+              maxlength="120"
+              autocomplete="name"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Course</label>
-            <input name="course" placeholder="e.g. IT" required />
+
+          <div class="form-group">
+            <label for="course">Course <span class="required">*</span></label>
+            <input
+              id="course"
+              name="course"
+              type="text"
+              placeholder="e.g. BS Information Technology"
+              maxlength="120"
+              autocomplete="off"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Year Level</label>
-            <input name="yearLevel" placeholder="e.g. 3rd Year" required />
+
+          <div class="form-group">
+            <label for="yearLevel">Year Level <span class="required">*</span></label>
+            <input
+              id="yearLevel"
+              name="yearLevel"
+              type="text"
+              placeholder="e.g. 3rd Year"
+              maxlength="50"
+              autocomplete="off"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Email Address</label>
-            <input name="emailAddress" type="email" placeholder="e.g. juan@email.com" required />
+
+          <div class="form-group">
+            <label for="emailAddress">Email Address <span class="required">*</span></label>
+            <input
+              id="emailAddress"
+              name="emailAddress"
+              type="email"
+              inputmode="email"
+              placeholder="e.g. juan@email.com"
+              maxlength="200"
+              autocomplete="email"
+              required
+              aria-required="true"
+            />
           </div>
-          <div class="form-actions">
-            <button type="submit">Add Student</button>
+
+          <div class="form-group form-actions">
+            <button type="submit" id="submitBtn">Add Student</button>
           </div>
-        </div>
+        </fieldset>
       </form>
 
-      <div id="notice"></div>
+      <div
+        id="notice"
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
 
       <div class="form-footer">
-        <a href="/students.html">
-          <button class="secondary">Go to Student List</button>
+        <a href="/students.html" class="secondary-link">
+          <button type="button" class="secondary">Go to Student List</button>
         </a>
       </div>
-    </div>
+    </main>
   </div>
 
   <script src="/app.js"></script>
   <script>
+    // Field validation configuration
+    const FIELD_CONFIG = {
+      studentId: { label: 'Student ID', maxLength: 50 },
+      fullName: { label: 'Full Name', maxLength: 120 },
+      course: { label: 'Course', maxLength: 120 },
+      yearLevel: { label: 'Year Level', maxLength: 50 },
+      emailAddress: { label: 'Email Address', maxLength: 200 }
+    };
+
+    // DOM elements
     const form = document.getElementById('form');
     const notice = document.getElementById('notice');
+    const submitBtn = document.getElementById('submitBtn');
 
+    /**
+     * Validates all form fields based on FIELD_CONFIG
+     * @param {Object} data - Form data object
+     * @returns {string|null} Error message if validation fails, null otherwise
+     */
+    function validateForm(data) {
+      for (const [key, config] of Object.entries(FIELD_CONFIG)) {
+        const value = String(data[key] || '').trim();
+
+        // Check required
+        if (!value) {
+          return `${config.label} is required.`;
+        }
+
+        // Check max length
+        if (value.length > config.maxLength) {
+          return `${config.label} must be ${config.maxLength} characters or less.`;
+        }
+      }
+
+      // Email-specific validation
+      const email = data.emailAddress.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return 'Please enter a valid email address (e.g., user@domain.com).';
+      }
+
+      return null;
+    }
+
+    /**
+     * Sets button loading state
+     * @param {boolean} loading - Whether the form is in a loading state
+     */
+    function setLoadingState(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.textContent = loading ? 'Adding...' : 'Add Student';
+      submitBtn.setAttribute('aria-busy', loading.toString());
+    }
+
+    // Form submission handler
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       notice.textContent = '';
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // Validate form
+      const validationError = validateForm(data);
+      if (validationError) {
+        setNotice(notice, 'error', validationError);
+        return;
+      }
+
+      // Prepare sanitized payload
+      const payload = {};
+      for (const key of Object.keys(FIELD_CONFIG)) {
+        payload[key] = String(data[key]).trim();
+      }
+
+      setLoadingState(true);
+
       try {
-        const data = Object.fromEntries(new FormData(form).entries());
-
-        // Client-side validation (mirrors backend constraints)
-        const required = ['studentId', 'fullName', 'course', 'yearLevel', 'emailAddress'];
-        for (const k of required) {
-          if (!String(data[k] || '').trim()) {
-            return setNotice(notice, 'error', `${k} is required.`);
-          }
-        }
-
-        const email = String(data.emailAddress || '').trim();
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) {
-          return setNotice(notice, 'error', 'Invalid email address.');
-        }
-
-        if (String(data.studentId).trim().length > 50) return setNotice(notice, 'error', 'Student ID must be 50 characters or less.');
-        if (String(data.fullName).trim().length > 120) return setNotice(notice, 'error', 'Full Name must be 120 characters or less.');
-        if (String(data.course).trim().length > 120) return setNotice(notice, 'error', 'Course must be 120 characters or less.');
-        if (String(data.yearLevel).trim().length > 50) return setNotice(notice, 'error', 'Year Level must be 50 characters or less.');
-        if (String(data.emailAddress).trim().length > 200) return setNotice(notice, 'error', 'Email Address must be 200 characters or less.');
-
         await api('/api/students', {
           method: 'POST',
-          body: JSON.stringify({
-            studentId: String(data.studentId).trim(),
-            fullName: String(data.fullName).trim(),
-            course: String(data.course).trim(),
-            yearLevel: String(data.yearLevel).trim(),
-            emailAddress: String(data.emailAddress).trim()
-          })
+          body: JSON.stringify(payload)
         });
         setNotice(notice, 'success', 'Student added successfully.');
         form.reset();
       } catch (err) {
-        setNotice(notice, 'error', err.message || 'Failed to add student.');
+        setNotice(notice, 'error', err.message || 'Failed to add student. Please try again.');
+      } finally {
+        setLoadingState(false);
       }
-
     });
   </script>
 </body>
