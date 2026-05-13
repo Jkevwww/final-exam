@@ -3,156 +3,298 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Edit Student</title>
+  <title>Edit Student | Student Management System</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <div class="container">
-    <nav>
+    <nav aria-label="Main navigation">
       <a href="/index.html">Home</a>
       <a href="/register.html">Register</a>
       <a href="/students.html">Students</a>
-      <a href="/edit.html">Edit Student</a>
+      <a href="/edit.html" aria-current="page">Edit Student</a>
     </nav>
 
-    <div class="card">
+    <main class="card">
       <h1>Edit Student</h1>
-      <h2>Update student information</h2>
+      <p class="subtitle">Update student information</p>
 
-      <form id="form">
-        <div class="grid">
-          <div>
-            <label>Student ID</label>
-            <input name="studentId" id="studentId" placeholder="Student ID" required />
+      <form id="form" novalidate>
+        <fieldset class="grid">
+          <legend class="visually-hidden">Student Information</legend>
+
+          <div class="form-group">
+            <label for="studentId">Student ID <span class="required">*</span></label>
+            <input
+              id="studentId"
+              name="studentId"
+              type="text"
+              placeholder="e.g. 2024-001"
+              maxlength="50"
+              autocomplete="off"
+              required
+              aria-required="true"
+              aria-describedby="studentId-hint"
+              readonly
+            />
+            <small id="studentId-hint" class="hint">Student ID cannot be changed</small>
           </div>
-          <div>
-            <label>Full Name</label>
-            <input name="fullName" id="fullName" placeholder="Full Name" required />
+
+          <div class="form-group">
+            <label for="fullName">Full Name <span class="required">*</span></label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="e.g. Juan Dela Cruz"
+              maxlength="120"
+              autocomplete="name"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Course</label>
-            <input name="course" id="course" placeholder="Course" required />
+
+          <div class="form-group">
+            <label for="course">Course <span class="required">*</span></label>
+            <input
+              id="course"
+              name="course"
+              type="text"
+              placeholder="e.g. BS Information Technology"
+              maxlength="120"
+              autocomplete="off"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Year Level</label>
-            <input name="yearLevel" id="yearLevel" placeholder="Year Level" required />
+
+          <div class="form-group">
+            <label for="yearLevel">Year Level <span class="required">*</span></label>
+            <input
+              id="yearLevel"
+              name="yearLevel"
+              type="text"
+              placeholder="e.g. 3rd Year"
+              maxlength="50"
+              autocomplete="off"
+              required
+              aria-required="true"
+            />
           </div>
-          <div>
-            <label>Email Address</label>
-            <input name="emailAddress" id="emailAddress" type="email" placeholder="Email" required />
+
+          <div class="form-group">
+            <label for="emailAddress">Email Address <span class="required">*</span></label>
+            <input
+              id="emailAddress"
+              name="emailAddress"
+              type="email"
+              inputmode="email"
+              placeholder="e.g. juan@email.com"
+              maxlength="200"
+              autocomplete="email"
+              required
+              aria-required="true"
+            />
           </div>
-          <div class="form-actions">
-            <button type="submit">Update Student</button>
+
+          <div class="form-group form-actions">
+            <button type="submit" id="submitBtn">Update Student</button>
           </div>
-        </div>
+        </fieldset>
       </form>
 
-      <div id="notice"></div>
+      <div
+        id="notice"
+        role="alert"
+        aria-live="polite"
+        aria-atomic="true"
+      ></div>
 
       <div class="form-footer">
-        <a href="/students.html">
-          <button class="secondary">Back to List</button>
+        <a href="/students.html" class="secondary-link">
+          <button type="button" class="secondary">Back to List</button>
         </a>
         <button type="button" class="danger" id="deleteBtn">Delete Student</button>
       </div>
-    </div>
+    </main>
   </div>
 
   <script src="/app.js"></script>
   <script>
+    // Field validation configuration
+    const FIELD_CONFIG = {
+      studentId: { label: 'Student ID', maxLength: 50 },
+      fullName: { label: 'Full Name', maxLength: 120 },
+      course: { label: 'Course', maxLength: 120 },
+      yearLevel: { label: 'Year Level', maxLength: 50 },
+      emailAddress: { label: 'Email Address', maxLength: 200 }
+    };
+
+    // DOM elements
     const form = document.getElementById('form');
     const notice = document.getElementById('notice');
-
+    const submitBtn = document.getElementById('submitBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
     const studentIdEl = document.getElementById('studentId');
-    const fullNameEl = document.getElementById('fullName');
-    const courseEl = document.getElementById('course');
-    const yearLevelEl = document.getElementById('yearLevel');
-    const emailAddressEl = document.getElementById('emailAddress');
 
-    function qs(k){
-      return new URLSearchParams(location.search).get(k);
+    /**
+     * Gets a query parameter from the URL
+     * @param {string} key - Parameter name
+     * @returns {string|null} Parameter value
+     */
+    function getQueryParam(key) {
+      return new URLSearchParams(location.search).get(key);
     }
 
-    async function fillFromQuery(){
-      const id = qs('studentId');
-      if(!id) return;
+    /**
+     * Validates all form fields based on FIELD_CONFIG
+     * @param {Object} data - Form data object
+     * @returns {string|null} Error message if validation fails, null otherwise
+     */
+    function validateForm(data) {
+      for (const [key, config] of Object.entries(FIELD_CONFIG)) {
+        const value = String(data[key] || '').trim();
+
+        // Check required
+        if (!value) {
+          return `${config.label} is required.`;
+        }
+
+        // Check max length
+        if (value.length > config.maxLength) {
+          return `${config.label} must be ${config.maxLength} characters or less.`;
+        }
+      }
+
+      // Email-specific validation
+      const email = data.emailAddress.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return 'Please enter a valid email address (e.g., user@domain.com).';
+      }
+
+      return null;
+    }
+
+    /**
+     * Sets button loading state
+     * @param {boolean} loading - Whether the form is in a loading state
+     */
+    function setLoadingState(loading) {
+      submitBtn.disabled = loading;
+      submitBtn.textContent = loading ? 'Updating...' : 'Update Student';
+      submitBtn.setAttribute('aria-busy', loading.toString());
+    }
+
+    /**
+     * Sets delete button loading state
+     * @param {boolean} loading - Whether the button is in a loading state
+     */
+    function setDeleteLoadingState(loading) {
+      deleteBtn.disabled = loading;
+      deleteBtn.textContent = loading ? 'Deleting...' : 'Delete Student';
+      deleteBtn.setAttribute('aria-busy', loading.toString());
+    }
+
+    /**
+     * Loads student data from the API and populates the form
+     */
+    async function loadStudentData() {
+      const id = getQueryParam('studentId');
+      if (!id) return;
+
       studentIdEl.value = id;
 
-      try{
+      try {
         const students = await loadStudents();
-        const s = students.find(x => String(x.studentId) === String(id));
-        if(!s) return;
-        fullNameEl.value = s.fullName;
-        courseEl.value = s.course;
-        yearLevelEl.value = s.yearLevel;
-        emailAddressEl.value = s.emailAddress;
-      }catch(_e){
-        // ignore
+        const student = students.find(s => String(s.studentId) === String(id));
+        if (!student) {
+          setNotice(notice, 'error', 'Student not found.');
+          return;
+        }
+
+        // Populate form fields
+        document.getElementById('fullName').value = student.fullName;
+        document.getElementById('course').value = student.course;
+        document.getElementById('yearLevel').value = student.yearLevel;
+        document.getElementById('emailAddress').value = student.emailAddress;
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Failed to load student data.');
       }
     }
 
+    // Form submission handler
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       notice.textContent = '';
 
-      try{
-        const studentId = String(studentIdEl.value || '').trim();
-        const payload = {
-          fullName: String(fullNameEl.value || '').trim(),
-          course: String(courseEl.value || '').trim(),
-          yearLevel: String(yearLevelEl.value || '').trim(),
-          emailAddress: String(emailAddressEl.value || '').trim()
-        };
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
 
-        const required = ['fullName', 'course', 'yearLevel', 'emailAddress'];
-        for (const k of required) {
-          if (!payload[k]) {
-            return setNotice(notice, 'error', `${k} is required.`);
-          }
-        }
-        if (!studentId) return setNotice(notice, 'error', 'Student ID is required.');
+      // Validate form
+      const validationError = validateForm(data);
+      if (validationError) {
+        setNotice(notice, 'error', validationError);
+        return;
+      }
 
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(payload.emailAddress)) {
-          return setNotice(notice, 'error', 'Invalid email address.');
-        }
+      // Prepare sanitized payload (exclude studentId as it's in the URL)
+      const payload = {};
+      const updateFields = ['fullName', 'course', 'yearLevel', 'emailAddress'];
+      for (const key of updateFields) {
+        payload[key] = String(data[key]).trim();
+      }
 
-        if (studentId.length > 50) return setNotice(notice, 'error', 'Student ID must be 50 characters or less.');
-        if (payload.fullName.length > 120) return setNotice(notice, 'error', 'Full Name must be 120 characters or less.');
-        if (payload.course.length > 120) return setNotice(notice, 'error', 'Course must be 120 characters or less.');
-        if (payload.yearLevel.length > 50) return setNotice(notice, 'error', 'Year Level must be 50 characters or less.');
-        if (payload.emailAddress.length > 200) return setNotice(notice, 'error', 'Email Address must be 200 characters or less.');
+      const studentId = String(studentIdEl.value || '').trim();
+      if (!studentId) {
+        setNotice(notice, 'error', 'Student ID is required.');
+        return;
+      }
 
+      setLoadingState(true);
+
+      try {
         await api(`/api/students/${encodeURIComponent(studentId)}`, {
           method: 'PUT',
           body: JSON.stringify(payload)
         });
-
         setNotice(notice, 'success', 'Student updated successfully.');
-      }catch(err){
-        setNotice(notice, 'error', err.message || 'Update failed.');
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Failed to update student. Please try again.');
+      } finally {
+        setLoadingState(false);
       }
-
     });
 
-    document.getElementById('deleteBtn').addEventListener('click', async () => {
-      const id = studentIdEl.value;
-      if(!id){
-        setNotice(notice, 'error', 'Enter Student ID first.');
+    // Delete button handler
+    deleteBtn.addEventListener('click', async () => {
+      const studentId = studentIdEl.value;
+      if (!studentId) {
+        setNotice(notice, 'error', 'Student ID is required to delete.');
         return;
       }
-      if(!confirm(`Delete student ${id}?`)) return;
-      try{
-        await api(`/api/students/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+      if (!confirm(`Are you sure you want to delete student "${studentId}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      setDeleteLoadingState(true);
+
+      try {
+        await api(`/api/students/${encodeURIComponent(studentId)}`, { method: 'DELETE' });
         setNotice(notice, 'success', 'Student deleted successfully.');
-        setTimeout(()=>location.href='/students.html', 800);
-      }catch(err){
-        setNotice(notice, 'error', err.message || 'Delete failed.');
+        setTimeout(() => {
+          location.href = '/students.html';
+        }, 800);
+      } catch (err) {
+        setNotice(notice, 'error', err.message || 'Failed to delete student. Please try again.');
+      } finally {
+        setDeleteLoadingState(false);
       }
     });
 
-    fillFromQuery();
+    // Load student data on page load
+    loadStudentData();
   </script>
 </body>
 </html>
-
